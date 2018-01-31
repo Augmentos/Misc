@@ -1,0 +1,62 @@
+Job Direct 3 - Enterprise
+DASHBOARD
+ACTIVE PROJECTS
+SEARCH
+REPORTS
+MESSAGES
+CREATE PROJECT
+Create Ads	
+WORKLOAD
+IST
+GMT
+EST
+CST
+MST
+PST
+LOGOUT
+HELP
+ACCOUNT
+Welcome
+Saved Filters 
+--Select--
+Sort By
+Order Date
+Due Date
+Proof Date
+Project Name / Job no
+RESET
+Assigned Users
+Unassigned
+REGION
+Department 
+Customer Rep
+CHANNEL TYPE
+Event
+BRAND
+MARKET
+Date Type
+Submit Date
+Due Date
+Date
+List From Past
+30 Days
+3 Months
+1 Year
+All
+List Due Jobs
+All Due Jobs
+Past Due
+Due Today
+Current
+Submission Type
+ALL
+Future Proof
+Outlook
+Filter Name
+X
+DELETE Filters
+Ok
+Cancel
+Job Number : 
+Are You sure you want to mark the selected messages as read?
+Please select atleast job number
