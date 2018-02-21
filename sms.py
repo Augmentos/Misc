@@ -10,5 +10,5 @@ client = boto3.client(
 # Send your sms message.
 client.publish(
     PhoneNumber="your_phone_number",
-    Message="Hello World!"
+    Message="Hello World!!"
 )
